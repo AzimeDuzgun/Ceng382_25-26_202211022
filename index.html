@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DZGNSALE</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #f2f8f5;
+}
+
+/* HEADER */
+header {
+  background: #6fcf97;
+  padding: 20px;
+  text-align: center;
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* CONTAINER */
+.container {
+  padding: 30px;
+}
+
+/* MENU GRID */
+.menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 25px;
+}
+
+/* CARD */
+.card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.card-content {
+  padding: 20px;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.card-description {
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.card-price {
+  font-size: 18px;
+  font-weight: bold;
+  color: #6fcf97;
+  margin-bottom: 15px;
+}
+
+.customize-btn {
+  background: #6fcf97;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+
+.customize-btn:hover {
+  background: #5bb085;
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 0;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  background: #6fcf97;
+  color: white;
+  padding: 20px;
+  border-radius: 15px 15px 0 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.customization-group {
+  margin-bottom: 20px;
+}
+
+.group-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.option input {
+  margin-right: 10px;
+}
+
+.option label {
+  cursor: pointer;
+  flex-grow: 1;
+}
+
+.option-price {
+  font-weight: bold;
+  color: #6fcf97;
+}
+
+.quantity {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.quantity label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.quantity input {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #6fcf97;
+}
+
+.add-to-cart-btn {
+  background: #6fcf97;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.add-to-cart-btn:hover {
+  background: #5bb085;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: black;
+}
+
+/* CART */
+.cart {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.cart h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.cart-item-info {
+  flex-grow: 1;
+}
+
+.cart-item-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.cart-item-details {
+  font-size: 12px;
+  color: #666;
+}
+
+.cart-item-price {
+  font-weight: bold;
+  color: #6fcf97;
+}
+
+.remove-btn {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.checkout-btn {
+  background: #6fcf97;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  width: 100%;
+  margin-top: 10px;
+  transition: 0.3s;
+}
+
+.checkout-btn:hover {
+  background: #5bb085;
+}
+
+/* CHECKOUT MODAL */
+.checkout-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.checkout-modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 20px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.checkout-modal h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkout-form label {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.checkout-form input {
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.pay-btn {
+  background: #6fcf97;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 20px;
+  transition: 0.3s;
+}
+
+.pay-btn:hover {
+  background: #5bb085;
+}
+
+.checkout-close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.checkout-close:hover {
+  color: black;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .menu {
+    grid-template-columns: 1fr;
+  }
+  
+  .cart {
+    position: static;
+    width: 100%;
+    margin-top: 20px;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  DZGNSALE
+</header>
+
+<div class="container">
+  <div class="menu" id="menu"></div>
+</div>
+
+<!-- Customization Modal -->
+<div id="customizationModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      Customize Your Order
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Customization options will be populated here -->
+    </div>
+    <div class="modal-footer">
+      <div class="total-price" id="totalPrice">$0.00</div>
+      <button class="add-to-cart-btn" id="addToCartBtn">Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div id="checkoutModal" class="checkout-modal">
+  <div class="checkout-modal-content">
+    <div class="checkout-modal-header">
+      Checkout
+      <span class="checkout-close">&times;</span>
+    </div>
+    <form class="checkout-form" id="checkoutForm">
+      <label for="cardNumber">Card Number</label>
+      <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required>
+      
+      <label for="cardHolderName">Card Holder Name</label>
+      <input type="text" id="cardHolderName" placeholder="John Doe" required>
+      
+      <label for="expiry">Expiry Date</label>
+      <input type="text" id="expiry" placeholder="MM/YY" required>
+      
+      <label for="cvv">CVV</label>
+      <input type="text" id="cvv" placeholder="123" required>
+      
+      <button type="submit" class="pay-btn">Pay Now</button>
+    </form>
+  </div>
+</div>
+
+<!-- Cart -->
+<div class="cart" id="cart">
+  <h3>Your Cart</h3>
+  <div id="cartItems"></div>
+  <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+</div>
+
+<script>
+// API base URL
+const API_BASE = 'http://localhost:3000';
+
+// Global variables
+let menuItems = [];
+let currentItem = null;
+let cart = [];
+
+// DOM elements
+const menuEl = document.getElementById('menu');
+const modal = document.getElementById('customizationModal');
+const modalBody = document.getElementById('modalBody');
+const totalPriceEl = document.getElementById('totalPrice');
+const addToCartBtn = document.getElementById('addToCartBtn');
+const cartEl = document.getElementById('cart');
+const cartItemsEl = document.getElementById('cartItems');
+const checkoutBtn = document.getElementById('checkoutBtn');
+const checkoutModal = document.getElementById('checkoutModal');
+const checkoutForm = document.getElementById('checkoutForm');
+
+// Initialize app
+async function init() {
+  await loadMenu();
+  renderMenu();
+  renderCart();
+}
+
+// Load menu items from API
+async function loadMenu() {
+  try {
+    const response = await fetch(`${API_BASE}/menu`);
+    const data = await response.json();
+    menuItems = data.data;
+  } catch (error) {
+    console.error('Error loading menu:', error);
+  }
+}
+
+// Render menu items
+function renderMenu() {
+  menuEl.innerHTML = '';
+  menuItems.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img src="${item.imageUrl}" alt="${item.name}">
+      <div class="card-content">
+        <div class="card-title">${item.name}</div>
+        <div class="card-description">${item.description}</div>
+        <div class="card-price">$${item.price}</div>
+        <button class="customize-btn" onclick="openCustomizationModal(${item.id})">Customize & Add to Cart</button>
+      </div>
+    `;
+    menuEl.appendChild(card);
+  });
+}
+
+// Open customization modal
+function openCustomizationModal(itemId) {
+  currentItem = menuItems.find(item => item.id == itemId);
+  renderCustomizationOptions();
+  modal.style.display = 'block';
+  updateTotalPrice();
+}
+
+// Render customization options
+function renderCustomizationOptions() {
+  modalBody.innerHTML = `
+    <div class="quantity">
+      <label for="quantity">Quantity:</label>
+      <input type="number" id="quantity" value="1" min="1" onchange="updateTotalPrice()">
+    </div>
+  `;
+
+  currentItem.customizationGroups.forEach(group => {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'customization-group';
+    groupDiv.innerHTML = `<div class="group-title">${group.name}</div>`;
+
+    group.options.forEach(option => {
+      const optionDiv = document.createElement('div');
+      optionDiv.className = 'option';
+      
+      const inputType = group.type === 'single' ? 'radio' : 'checkbox';
+      const inputName = `group-${group.id}`;
+      
+      optionDiv.innerHTML = `
+        <input type="${inputType}" name="${inputName}" value="${option.id}" onchange="updateTotalPrice()">
+        <label>${option.name}</label>
+        <span class="option-price">+$${option.priceDelta}</span>
+      `;
+      
+      groupDiv.appendChild(optionDiv);
+    });
+
+    modalBody.appendChild(groupDiv);
+  });
+}
+
+// Update total price
+function updateTotalPrice() {
+  const quantity = parseInt(document.getElementById('quantity').value) || 1;
+  let total = currentItem.price * quantity;
+
+  // Calculate customization costs
+  currentItem.customizationGroups.forEach(group => {
+    const selectedOptions = document.querySelectorAll(`input[name="group-${group.id}"]:checked`);
+    selectedOptions.forEach(option => {
+      const optionData = group.options.find(opt => opt.id == option.value);
+      total += optionData.priceDelta * quantity;
+    });
+  });
+
+  totalPriceEl.textContent = `$${total.toFixed(2)}`;
+}
+
+// Add to cart
+async function addToCart() {
+  const quantity = parseInt(document.getElementById('quantity').value) || 1;
+  const selectedCustomizations = [];
+
+  currentItem.customizationGroups.forEach(group => {
+    const selectedOptions = document.querySelectorAll(`input[name="group-${group.id}"]:checked`);
+    selectedOptions.forEach(option => {
+      selectedCustomizations.push({
+        groupId: group.id,
+        optionId: parseInt(option.value)
+      });
+    });
+  });
+
+  try {
+    const response = await fetch(`${API_BASE}/cart/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        menuItemId: currentItem.id,
+        quantity,
+        selectedCustomizations
+      })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      cart = data.data.cartItem;
+      renderCart();
+      modal.style.display = 'none';
+    } else {
+      alert(data.message);
+    }
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+  }
+}
+
+// Render cart
+function renderCart() {
+  // For simplicity, we'll just show a placeholder
+  cartItemsEl.innerHTML = '<p>Cart items will be displayed here</p>';
+}
+
+// Event listeners
+document.querySelector('.close').onclick = () => modal.style.display = 'none';
+addToCartBtn.onclick = addToCart;
+
+window.onclick = (event) => {
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+  if (event.target == checkoutModal) {
+    checkoutModal.style.display = 'none';
+  }
+}
+
+// Initialize
+init();
+</script>
+</body>
+</html>
