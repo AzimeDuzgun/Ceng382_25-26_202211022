@@ -1,0 +1,637 @@
+// server.js
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const { URL } = require('url');
+
+const PORT = process.env.PORT || 3000;
+const BASE_DIR = __dirname;
+const DATA_DIR = path.join(BASE_DIR, 'data');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const MENUS_FILE = path.join(DATA_DIR, 'menus.json');
+const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
+const PUBLIC_DIR = path.join(BASE_DIR, 'public');
+const SESSION_COOKIE = 'dzgnburger_sid';
+const USD_RATE = 38.5;
+
+const ROLE_CONFIG = {
+  admin: { redirectTo: '/admin', label: 'Admin' },
+  caretaker: { redirectTo: '/caretaker', label: 'Caretaker' },
+  user: { redirectTo: '/home', label: 'User' }
+};
+
+function ensureDataFiles() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(USERS_FILE)) writeJson(USERS_FILE, []);
+  if (!fs.existsSync(MENUS_FILE)) writeJson(MENUS_FILE, []);
+  if (!fs.existsSync(SESSIONS_FILE)) writeJson(SESSIONS_FILE, {});
+  seedInitialData();
+}
+
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function writeJson(filePath, value) {
+  fs.writeFileSync(filePath, JSON.stringify(value, null, 2), 'utf8');
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function nextId(items) {
+  if (!items.length) return 1;
+  return Math.max(...items.map(item => item.id)) + 1;
+}
+
+function toUsd(tl) {
+  return Number((Number(tl) / USD_RATE).toFixed(2));
+}
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+  const derived = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${derived}`;
+}
+
+function verifyPassword(password, storedValue) {
+  const [salt, originalHash] = storedValue.split(':');
+  const currentHash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return crypto.timingSafeEqual(Buffer.from(originalHash, 'hex'), Buffer.from(currentHash, 'hex'));
+}
+
+function seedInitialData() {
+  const users = readJson(USERS_FILE);
+  if (!users.find(u => u.email === 'admin@dzgnburger.com')) {
+    users.push(createUserRecord('DZGN Admin', 'admin@dzgnburger.com', 'Admin123!', 'admin'));
+  }
+  if (!users.find(u => u.email === 'caretaker@dzgnburger.com')) {
+    users.push(createUserRecord('DZGN Caretaker', 'caretaker@dzgnburger.com', 'Caretaker123!', 'caretaker'));
+  }
+  if (!users.find(u => u.email === 'user@dzgnburger.com')) {
+    users.push(createUserRecord('DZGN User', 'user@dzgnburger.com', 'User123!', 'user'));
+  }
+  writeJson(USERS_FILE, users);
+
+  const caretaker = users.find(u => u.role === 'caretaker');
+  const menus = readJson(MENUS_FILE);
+  if (menus.length === 0) {
+    const baseItems = [
+      ['Berryburger', 'Burger', 'A unique flavor with blueberry smash meatballs.', 500],
+      ['Greenburger', 'Burger', 'Veggie burger.', 560],
+      ['Dinasourburger', 'Burger', 'Three-patty roasted pepper smash burger.', 560],
+      ['Goatburger', 'Burger', 'Goat cheese smash burger.', 500],
+      ['Barburger', 'Burger', 'Smash burger with special barbecue sauce.', 500],
+      ['Patates Kızartması', 'Snack', 'Crispy sliced apple potatoes.', 200],
+      ['5’li Soğan Halkası', 'Snack', 'Handmade fresh eight-piece onion rings.', 150],
+      ['5’li Özel Sos Tepsisi', 'Snack', "Our chef's special platter features 5 sauces.", 250],
+      ['Çıtır Tavuk Parçaları', 'Snack', '12 crispy golden chicken pieces.', 300],
+      ['Ayran', 'Drink', 'Buttermilk in a frothy churn.', 50],
+      ['Ice Tea', 'Drink', 'Homemade peach and lemon flavored iced tea.', 65],
+      ['Soda', 'Drink', 'Lemon, plain, apple soda.', 25],
+      ['Cola', 'Drink', 'Fizz.', 60],
+      ['Fanta', 'Drink', 'Fizz.', 60],
+      ['Organik Erik Suyu', 'Drink', 'Freshly boiled plum juice.', 75]
+    ];
+    let idCounter = 1;
+    baseItems.forEach(([name, category, description, priceTl]) => {
+      menus.push({
+        id: idCounter++,
+        name,
+        category,
+        description,
+        priceTl: Number(priceTl),
+        priceUsd: toUsd(priceTl),
+        createdBy: caretaker.id,
+        caretakerName: caretaker.fullName,
+        createdAt: nowIso()
+      });
+    });
+    writeJson(MENUS_FILE, menus);
+  }
+}
+
+function createUserRecord(fullName, email, password, role) {
+  const users = fs.existsSync(USERS_FILE) ? readJson(USERS_FILE) : [];
+  return {
+    id: nextId(users),
+    fullName,
+    email: email.toLowerCase(),
+    passwordHash: hashPassword(password),
+    role,
+    createdAt: nowIso()
+  };
+}
+
+function parseCookies(req) {
+  const cookieHeader = req.headers.cookie || '';
+  return cookieHeader.split(';').reduce((acc, pair) => {
+    const [rawKey, ...rawValue] = pair.trim().split('=');
+    if (!rawKey) return acc;
+    acc[rawKey] = decodeURIComponent(rawValue.join('='));
+    return acc;
+  }, {});
+}
+
+function getSession(req) {
+  const cookies = parseCookies(req);
+  const sessionId = cookies[SESSION_COOKIE];
+  if (!sessionId) return null;
+  const sessions = readJson(SESSIONS_FILE);
+  const session = sessions[sessionId];
+  if (!session) return null;
+  return { id: sessionId, data: session };
+}
+
+function createSession(user) {
+  const sessions = readJson(SESSIONS_FILE);
+  const sessionId = crypto.randomBytes(24).toString('hex');
+  sessions[sessionId] = {
+    userId: user.id,
+    fullName: user.fullName,
+    email: user.email,
+    role: user.role,
+    createdAt: nowIso()
+  };
+  writeJson(SESSIONS_FILE, sessions);
+  return sessionId;
+}
+
+function destroySession(sessionId) {
+  const sessions = readJson(SESSIONS_FILE);
+  delete sessions[sessionId];
+  writeJson(SESSIONS_FILE, sessions);
+}
+
+function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+      if (body.length > 1e6) req.destroy();
+    });
+    req.on('end', () => {
+      const params = new URLSearchParams(body);
+      const data = {};
+      for (const [key, value] of params.entries()) data[key] = value.trim();
+      resolve(data);
+    });
+    req.on('error', reject);
+  });
+}
+
+function redirect(res, location, cookie) {
+  const headers = { Location: location };
+  if (cookie) headers['Set-Cookie'] = cookie;
+  res.writeHead(302, headers);
+  res.end();
+}
+
+function sendHtml(res, html, statusCode = 200) {
+  res.writeHead(statusCode, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(html);
+}
+
+function sendFile(res, filePath) {
+  if (!fs.existsSync(filePath)) {
+    res.writeHead(404);
+    res.end('Not found');
+    return;
+  }
+  const ext = path.extname(filePath);
+  const contentType = ext === '.css' ? 'text/css; charset=utf-8' : 'text/plain; charset=utf-8';
+  res.writeHead(200, { 'Content-Type': contentType });
+  res.end(fs.readFileSync(filePath));
+}
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function layout({ title, user, content, flash = '' }) {
+  const nav = user
+    ? `
+      <a href="/dashboard">Dashboard</a>
+      ${user.role === 'caretaker' || user.role === 'admin' ? '<a href="/caretaker">Caretaker</a>' : ''}
+      ${user.role === 'admin' ? '<a href="/admin">Admin</a>' : ''}
+      <a href="/home">Home</a>
+      <span class="user-badge">${escapeHtml(user.fullName)} • ${escapeHtml(user.role)}</span>
+      <form action="/logout" method="POST" class="inline-form"><button class="btn btn-outline">Logout</button></form>
+    `
+    : `
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+    `;
+
+  return `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(title)} | DZGNburger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-row">
+        <a href="/" class="brand">DZGNburger</a>
+        <nav class="nav-links">${nav}</nav>
+      </div>
+    </header>
+    <main class="container page-space">
+      ${flash}
+      ${content}
+    </main>
+  </body>
+  </html>`;
+}
+
+function flashBox(message, type = 'success') {
+  return `<div class="flash ${escapeHtml(type)}">${escapeHtml(message)}</div>`;
+}
+
+function renderPublicMenu() {
+  const menus = readJson(MENUS_FILE);
+  const burgers = menus.filter(item => item.category === 'Burger');
+  const snacks = menus.filter(item => item.category === 'Snack');
+  const drinks = menus.filter(item => item.category === 'Drink');
+
+  const burgerCards = burgers.map(item => `
+    <article class="menu-card">
+      <div>
+        <h3>${escapeHtml(item.name)}</h3>
+        <p>${escapeHtml(item.description)}</p>
+      </div>
+      <div class="price-col">
+        <strong>${item.priceTl.toFixed(0)} TL</strong>
+        <span>$${item.priceUsd.toFixed(2)}</span>
+      </div>
+    </article>
+  `).join('');
+
+  const snackCards = snacks.map(item => `
+    <article class="menu-card compact-card">
+      <h3>${escapeHtml(item.name)}</h3>
+      <p>${escapeHtml(item.description)}</p>
+      <strong>${item.priceTl.toFixed(0)} TL • $${item.priceUsd.toFixed(2)}</strong>
+    </article>
+  `).join('');
+
+  const drinkCards = drinks.map(item => `
+    <article class="menu-card compact-card">
+      <h3>${escapeHtml(item.name)}</h3>
+      <p>${escapeHtml(item.description)}</p>
+      <strong>${item.priceTl.toFixed(0)} TL • $${item.priceUsd.toFixed(2)}</strong>
+    </article>
+  `).join('');
+
+  return `
+    <section class="hero hero-step-1">
+      <div>
+        <p class="eyebrow">Week 2 Burger Lab</p>
+        <h1>DZGNburger Menu</h1>
+        <p class="hero-text">White background, light green brand accent, and soft pink menu sections that darken step by step from Step 1 to Step 5.</p>
+        <div class="hero-actions">
+          <a href="/register" class="btn">Start with Register</a>
+          <a href="/login" class="btn btn-outline">Already have an account?</a>
+        </div>
+      </div>
+      <div class="brand-card green-glow">
+        <h2>Brand Rules</h2>
+        <p>Site name: DZGNburger</p>
+        <p>Background: white</p>
+        <p>Cards: soft pink stages</p>
+        <p>Brand touch: light green</p>
+      </div>
+    </section>
+
+    <section class="section-block soft-step-1">
+      <div class="section-title-row"><h2>Burgers</h2><span class="pill">Step 1 Pink</span></div>
+      <div class="menu-list vertical-menu">${burgerCards}</div>
+    </section>
+
+    <section class="section-block soft-step-2">
+      <div class="section-title-row"><h2>Snacks</h2><span class="pill">Step 2 Pink</span></div>
+      <div class="grid cards-2">${snackCards}</div>
+    </section>
+
+    <section class="section-block soft-step-3">
+      <div class="section-title-row"><h2>Drinks</h2><span class="pill">Step 3 Pink</span></div>
+      <div class="grid cards-3">${drinkCards}</div>
+    </section>
+
+    <section class="section-block soft-step-4">
+      <div class="section-title-row"><h2>Role Flow</h2><span class="pill">Step 4 Pink</span></div>
+      <div class="grid cards-3">
+        <article class="info-card"><h3>Admin</h3><p>Basic admin panel ready for future labs.</p></article>
+        <article class="info-card"><h3>Caretaker</h3><p>Creates menu items on the caretaker page.</p></article>
+        <article class="info-card"><h3>User</h3><p>Sees all menu items on the user home page.</p></article>
+      </div>
+    </section>
+
+    <section class="section-block soft-step-5">
+      <div class="section-title-row"><h2>Final Stage</h2><span class="pill">Step 5 Darker Pink</span></div>
+      <p class="final-note">The visual pink tone becomes stronger at each stage, while the app logic stays modular and scalable.</p>
+    </section>
+  `;
+}
+
+function renderAuthPage(mode, values = {}, error = '') {
+  const isRegister = mode === 'register';
+  const title = isRegister ? 'Register' : 'Login';
+  const formHtml = isRegister ? `
+    <label>Full Name
+      <input type="text" name="fullName" value="${escapeHtml(values.fullName || '')}" required />
+    </label>
+    <label>Email
+      <input type="email" name="email" value="${escapeHtml(values.email || '')}" required />
+    </label>
+    <label>Role
+      <select name="role" required>
+        ${['user', 'caretaker', 'admin'].map(role => `<option value="${role}" ${(values.role || 'user') === role ? 'selected' : ''}>${ROLE_CONFIG[role].label}</option>`).join('')}
+      </select>
+    </label>
+    <label>Password
+      <input type="password" name="password" required />
+    </label>
+    <label>Confirm Password
+      <input type="password" name="confirmPassword" required />
+    </label>
+  ` : `
+    <label>Email
+      <input type="email" name="email" value="${escapeHtml(values.email || '')}" required />
+    </label>
+    <label>Password
+      <input type="password" name="password" required />
+    </label>
+  `;
+
+  return `
+    <section class="auth-shell ${isRegister ? 'soft-step-1' : 'soft-step-2'}">
+      <div class="auth-card">
+        <p class="eyebrow">Step 1</p>
+        <h1>${title}</h1>
+        <p>${isRegister ? 'Create an account and choose a role.' : 'Use a registered account to continue.'}</p>
+        ${error ? flashBox(error, 'error') : ''}
+        <form action="/${mode}" method="POST" class="form-grid">
+          ${formHtml}
+          <button type="submit" class="btn">${title}</button>
+        </form>
+        ${!isRegister ? `
+          <div class="demo-box">
+            <strong>Demo Accounts</strong>
+            <p>admin@dzgnburger.com / Admin123!</p>
+            <p>caretaker@dzgnburger.com / Caretaker123!</p>
+            <p>user@dzgnburger.com / User123!</p>
+          </div>
+        ` : ''}
+      </div>
+    </section>
+  `;
+}
+
+function renderUserHome(user) {
+  const cards = readJson(MENUS_FILE).map(item => `
+    <article class="menu-card soft-step-5">
+      <span class="mini-tag">${escapeHtml(item.category)}</span>
+      <h3>${escapeHtml(item.name)}</h3>
+      <p>${escapeHtml(item.description)}</p>
+      <strong>${item.priceTl.toFixed(0)} TL • $${item.priceUsd.toFixed(2)}</strong>
+      <small>Created by: ${escapeHtml(item.caretakerName)}</small>
+    </article>
+  `).join('');
+
+  return `
+    <section class="section-block soft-step-4">
+      <div class="section-title-row">
+        <div><p class="eyebrow">Step 4</p><h1>User Home Page</h1></div>
+        <a href="/" class="btn btn-outline">Public Menu</a>
+      </div>
+      <p>Users can view all menu items created by caretakers here.</p>
+    </section>
+    <section class="grid cards-3">${cards}</section>
+  `;
+}
+
+function renderCaretakerPage(values = {}, error = '', message = '') {
+  const cards = readJson(MENUS_FILE).map(item => `
+    <article class="menu-card">
+      <span class="mini-tag">${escapeHtml(item.category)}</span>
+      <h3>${escapeHtml(item.name)}</h3>
+      <p>${escapeHtml(item.description)}</p>
+      <strong>${item.priceTl.toFixed(0)} TL • $${item.priceUsd.toFixed(2)}</strong>
+    </article>
+  `).join('');
+
+  return `
+    <section class="section-block soft-step-3">
+      <div class="section-title-row">
+        <div><p class="eyebrow">Step 3</p><h1>Caretaker Panel</h1></div>
+        <a href="/home" class="btn btn-outline">See User Home</a>
+      </div>
+      <p>Caretakers can create menu items with name, category, description, and price.</p>
+      ${message ? flashBox(message, 'success') : ''}
+      ${error ? flashBox(error, 'error') : ''}
+      <form action="/caretaker/menu-items" method="POST" class="form-grid grid-2">
+        <label>Menu Name
+          <input type="text" name="name" value="${escapeHtml(values.name || '')}" required />
+        </label>
+        <label>Category
+          <select name="category" required>
+            ${['Burger', 'Snack', 'Drink'].map(c => `<option value="${c}" ${(values.category || '') === c ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+        </label>
+        <label>Description
+          <textarea name="description" rows="4" required>${escapeHtml(values.description || '')}</textarea>
+        </label>
+        <label>Price (TL)
+          <input type="number" name="priceTl" min="1" step="0.01" value="${escapeHtml(values.priceTl || '')}" required />
+        </label>
+        <button type="submit" class="btn">Create Menu Item</button>
+      </form>
+    </section>
+    <section class="section-block soft-step-4">
+      <div class="section-title-row"><h2>Current Menu Items</h2><span class="pill">${readJson(MENUS_FILE).length} items</span></div>
+      <div class="grid cards-3">${cards}</div>
+    </section>
+  `;
+}
+
+function renderAdminPage() {
+  return `
+    <section class="section-block soft-step-5">
+      <p class="eyebrow">Step 2</p>
+      <h1>Admin Panel</h1>
+      <p>This basic admin page satisfies the role system requirement for this lab and is ready to expand later.</p>
+    </section>
+  `;
+}
+
+function requireAuth(req, res) {
+  const session = getSession(req);
+  if (!session) {
+    redirect(res, '/login');
+    return null;
+  }
+  return session.data;
+}
+
+function requireRole(req, res, allowedRoles) {
+  const user = requireAuth(req, res);
+  if (!user) return null;
+  if (!allowedRoles.includes(user.role)) {
+    redirect(res, '/dashboard');
+    return null;
+  }
+  return user;
+}
+
+async function handleRoute(req, res) {
+  const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = parsedUrl.pathname;
+  const session = getSession(req);
+  const user = session ? session.data : null;
+
+  if (pathname.startsWith('/public/')) {
+    return sendFile(res, path.join(PUBLIC_DIR, pathname.replace('/public/', '')));
+  }
+
+  if (req.method === 'GET' && pathname === '/') {
+    return sendHtml(res, layout({ title: 'DZGNburger', user, content: renderPublicMenu() }));
+  }
+
+  if (req.method === 'GET' && pathname === '/register') {
+    if (user) return redirect(res, '/dashboard');
+    return sendHtml(res, layout({ title: 'Register', user, content: renderAuthPage('register') }));
+  }
+
+  if (req.method === 'POST' && pathname === '/register') {
+    if (user) return redirect(res, '/dashboard');
+    const form = await parseBody(req);
+    const { fullName, email, password, confirmPassword, role } = form;
+    const safeRole = ROLE_CONFIG[role] ? role : 'user';
+    const users = readJson(USERS_FILE);
+
+    if (!fullName || !email || !password || !confirmPassword) {
+      return sendHtml(res, layout({ title: 'Register', user: null, content: renderAuthPage('register', form, 'All fields are required.') }), 400);
+    }
+    if (password.length < 6) {
+      return sendHtml(res, layout({ title: 'Register', user: null, content: renderAuthPage('register', form, 'Password must be at least 6 characters.') }), 400);
+    }
+    if (password !== confirmPassword) {
+      return sendHtml(res, layout({ title: 'Register', user: null, content: renderAuthPage('register', form, 'Passwords do not match.') }), 400);
+    }
+    if (users.find(u => u.email === email.toLowerCase())) {
+      return sendHtml(res, layout({ title: 'Register', user: null, content: renderAuthPage('register', form, 'This email is already registered.') }), 400);
+    }
+
+    const newUser = createUserRecord(fullName, email, password, safeRole);
+    users.push(newUser);
+    writeJson(USERS_FILE, users);
+    const sessionId = createSession(newUser);
+    return redirect(res, ROLE_CONFIG[newUser.role].redirectTo, `${SESSION_COOKIE}=${sessionId}; HttpOnly; Path=/; Max-Age=7200`);
+  }
+
+  if (req.method === 'GET' && pathname === '/login') {
+    if (user) return redirect(res, '/dashboard');
+    return sendHtml(res, layout({ title: 'Login', user, content: renderAuthPage('login') }));
+  }
+
+  if (req.method === 'POST' && pathname === '/login') {
+    if (user) return redirect(res, '/dashboard');
+    const form = await parseBody(req);
+    const { email, password } = form;
+    const users = readJson(USERS_FILE);
+    const found = users.find(u => u.email === String(email || '').toLowerCase());
+
+    if (!email || !password) {
+      return sendHtml(res, layout({ title: 'Login', user: null, content: renderAuthPage('login', form, 'Email and password are required.') }), 400);
+    }
+    if (!found || !verifyPassword(password, found.passwordHash)) {
+      return sendHtml(res, layout({ title: 'Login', user: null, content: renderAuthPage('login', form, 'Invalid email or password.') }), 401);
+    }
+
+    const sessionId = createSession(found);
+    return redirect(res, ROLE_CONFIG[found.role].redirectTo, `${SESSION_COOKIE}=${sessionId}; HttpOnly; Path=/; Max-Age=7200`);
+  }
+
+  if (req.method === 'POST' && pathname === '/logout') {
+    if (session) destroySession(session.id);
+    return redirect(res, '/login', `${SESSION_COOKIE}=; HttpOnly; Path=/; Max-Age=0`);
+  }
+
+  if (req.method === 'GET' && pathname === '/dashboard') {
+    const protectedUser = requireAuth(req, res);
+    if (!protectedUser) return;
+    return redirect(res, ROLE_CONFIG[protectedUser.role].redirectTo);
+  }
+
+  if (req.method === 'GET' && pathname === '/home') {
+    const protectedUser = requireRole(req, res, ['user', 'caretaker', 'admin']);
+    if (!protectedUser) return;
+    return sendHtml(res, layout({ title: 'User Home', user: protectedUser, content: renderUserHome(protectedUser) }));
+  }
+
+  if (req.method === 'GET' && pathname === '/caretaker') {
+    const protectedUser = requireRole(req, res, ['caretaker', 'admin']);
+    if (!protectedUser) return;
+    return sendHtml(res, layout({ title: 'Caretaker', user: protectedUser, content: renderCaretakerPage() }));
+  }
+
+  if (req.method === 'POST' && pathname === '/caretaker/menu-items') {
+    const protectedUser = requireRole(req, res, ['caretaker', 'admin']);
+    if (!protectedUser) return;
+    const form = await parseBody(req);
+    const price = Number(form.priceTl);
+
+    if (!form.name || !form.category || !form.description || Number.isNaN(price) || price <= 0) {
+      return sendHtml(res, layout({ title: 'Caretaker', user: protectedUser, content: renderCaretakerPage(form, 'Please enter a valid name, category, description, and positive price.') }), 400);
+    }
+
+    const menus = readJson(MENUS_FILE);
+    menus.push({
+      id: nextId(menus),
+      name: form.name,
+      category: form.category,
+      description: form.description,
+      priceTl: Number(price.toFixed(2)),
+      priceUsd: toUsd(price),
+      createdBy: protectedUser.userId,
+      caretakerName: protectedUser.fullName,
+      createdAt: nowIso()
+    });
+    writeJson(MENUS_FILE, menus);
+
+    return sendHtml(res, layout({ title: 'Caretaker', user: protectedUser, content: renderCaretakerPage({}, '', 'Menu item created successfully.') }));
+  }
+
+  if (req.method === 'GET' && pathname === '/admin') {
+    const protectedUser = requireRole(req, res, ['admin']);
+    if (!protectedUser) return;
+    return sendHtml(res, layout({ title: 'Admin', user: protectedUser, content: renderAdminPage() }));
+  }
+
+  return sendHtml(res, layout({ title: 'Not Found', user, content: '<section class="section-block"><h1>404</h1><p>Page not found.</p></section>' }), 404);
+}
+
+ensureDataFiles();
+
+const server = http.createServer((req, res) => {
+  handleRoute(req, res).catch(error => {
+    console.error(error);
+    sendHtml(res, layout({ title: 'Error', user: null, content: `<section class="section-block"><h1>Server Error</h1><p>${escapeHtml(error.message)}</p></section>` }), 500);
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`DZGNburger running at http://localhost:${PORT}`);
+});
