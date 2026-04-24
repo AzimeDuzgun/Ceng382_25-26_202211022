@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "fullName": "DZGN Admin",
+    "email": "admin@dzgnburger.com",
+    "passwordHash": "3b84a42acadb3ffdc961e24b3086db94:604ae0fd43b6fac1501501066cf8de73d6c04d4953d656a9b70c56ddd195ef78488bb7c7e22e751b72924d9a93d412be6fe7f6504050cc4bd33196099d1e9576",
+    "role": "admin",
+    "createdAt": "2026-04-24T04:41:16.978Z"
+  },
+  {
+    "id": 1,
+    "fullName": "DZGN Caretaker",
+    "email": "caretaker@dzgnburger.com",
+    "passwordHash": "3ba22ecd6d854520b08850190112fcde:4397bc93d2266334f8b7edb38f3c4e44b9e071757877b0b6b66315150502f6493ce155fed9fc888340eb6489d8cb6b8b2d9b51585efdb7d45385bc6457694028",
+    "role": "caretaker",
+    "createdAt": "2026-04-24T04:41:17.015Z"
+  },
+  {
+    "id": 1,
+    "fullName": "DZGN User",
+    "email": "user@dzgnburger.com",
+    "passwordHash": "869d8d36a3b488b6ed425bcc16565e83:ed59caea00bd9b4f0333fd1b8632d00d8dfb1553561ecf2eb524fc9d8e47928a63a46280a3e5f209ef6acda3c5dedb475426c9766fae97acc7b27266f9c11863",
+    "role": "user",
+    "createdAt": "2026-04-24T04:41:17.047Z"
+  }
+]

@@ -1,0 +1,168 @@
+// data/menus.json
+[
+  {
+    "id": 1,
+    "name": "Berryburger",
+    "category": "Burger",
+    "description": "A unique flavor with blueberry smash meatballs.",
+    "priceTl": 500,
+    "priceUsd": 12.99,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 2,
+    "name": "Greenburger",
+    "category": "Burger",
+    "description": "Veggie burger.",
+    "priceTl": 560,
+    "priceUsd": 14.55,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 3,
+    "name": "Dinasourburger",
+    "category": "Burger",
+    "description": "Three-patty roasted pepper smash burger.",
+    "priceTl": 560,
+    "priceUsd": 14.55,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 4,
+    "name": "Goatburger",
+    "category": "Burger",
+    "description": "Goat cheese smash burger.",
+    "priceTl": 500,
+    "priceUsd": 12.99,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 5,
+    "name": "Barburger",
+    "category": "Burger",
+    "description": "Smash burger with special barbecue sauce.",
+    "priceTl": 500,
+    "priceUsd": 12.99,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 6,
+    "name": "Patates Kızartması",
+    "category": "Snack",
+    "description": "Crispy sliced apple potatoes.",
+    "priceTl": 200,
+    "priceUsd": 5.19,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 7,
+    "name": "5’li Soğan Halkası",
+    "category": "Snack",
+    "description": "Handmade fresh eight-piece onion rings.",
+    "priceTl": 150,
+    "priceUsd": 3.9,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 8,
+    "name": "5’li Özel Sos Tepsisi",
+    "category": "Snack",
+    "description": "Our chef's special platter features 5 sauces.",
+    "priceTl": 250,
+    "priceUsd": 6.49,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 9,
+    "name": "Çıtır Tavuk Parçaları",
+    "category": "Snack",
+    "description": "12 crispy golden chicken pieces.",
+    "priceTl": 300,
+    "priceUsd": 7.79,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 10,
+    "name": "Ayran",
+    "category": "Drink",
+    "description": "Buttermilk in a frothy churn.",
+    "priceTl": 50,
+    "priceUsd": 1.3,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 11,
+    "name": "Ice Tea",
+    "category": "Drink",
+    "description": "Homemade peach and lemon flavored iced tea.",
+    "priceTl": 65,
+    "priceUsd": 1.69,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 12,
+    "name": "Soda",
+    "category": "Drink",
+    "description": "Lemon, plain, apple soda.",
+    "priceTl": 25,
+    "priceUsd": 0.65,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 13,
+    "name": "Cola",
+    "category": "Drink",
+    "description": "Fizz.",
+    "priceTl": 60,
+    "priceUsd": 1.56,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 14,
+    "name": "Fanta",
+    "category": "Drink",
+    "description": "Fizz.",
+    "priceTl": 60,
+    "priceUsd": 1.56,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  },
+  {
+    "id": 15,
+    "name": "Organik Erik Suyu",
+    "category": "Drink",
+    "description": "Freshly boiled plum juice.",
+    "priceTl": 75,
+    "priceUsd": 1.95,
+    "createdBy": 1,
+    "caretakerName": "DZGN Caretaker",
+    "createdAt": "2026-04-23T19:27:53.743Z"
+  }
+]

@@ -1,0 +1,10 @@
+// package.json
+{
+  "name": "dzgnburger-week2-no-deps",
+  "version": "1.0.0",
+  "description": "No-dependency Node.js implementation for DZGNburger Week 2",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
