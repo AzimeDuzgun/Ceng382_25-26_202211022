@@ -1,0 +1,77 @@
+﻿@model IEnumerable<DZGNCatering.Models.Log>
+@{
+    ViewData["Title"] = "Sistem Logları";
+}
+
+<div class="container mt-5 mb-5">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="fw-bold m-0" style="color: #0f172a; font-family: 'Playfair Display', serif;">
+            <i class="fa-solid fa-server text-warning me-2"></i> Sistem İşlem Logları
+        </h2>
+        <span class="badge bg-danger rounded-pill px-4 py-2 fs-6 shadow-sm">
+            <i class="fa-solid fa-shield-halved me-2"></i> Admin Yetkisi Aktif
+        </span>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white p-3 border-0">
+            <h6 class="m-0 fw-bold"><i class="fa-solid fa-list-check text-warning me-2"></i> Tüm Sistem Hareketleri</h6>
+        </div>
+        <div class="card-body p-0 bg-white">
+            @if (!Model.Any())
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="fa-solid fa-database fa-3x mb-3 opacity-50"></i>
+                    <h5 class="fw-bold">Sistemde henüz bir log kaydı bulunmuyor.</h5>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4 py-3">Tarih / Saat</th>
+                                <th>Kullanıcı (E-Posta)</th>
+                                <th>İşlem Detayı</th>
+                                <th class="pe-4 text-center">Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 text-muted small fw-bold">@log.ActionDate.ToString("dd.MM.yyyy HH:mm:ss")</td>
+
+                                    <td>
+                                        <span class="badge bg-light text-dark border px-2 py-1">
+                                            <i class="fa-solid fa-user-tag text-secondary me-1"></i> @(string.IsNullOrEmpty(log.UserEmail) ? "Sistem Anonim" : log.UserEmail)
+                                        </span>
+                                    </td>
+                                    <td class="fw-bold text-dark small" style="max-width: 450px; white-space: normal;">
+                                        @log.Message
+                                    </td>
+                                    <td class="pe-4 text-center">
+                                        @if (log.Message.ToLower().Contains("hata") || log.Message.ToLower().Contains("iptal"))
+                                        {
+                                            <i class="fa-solid fa-circle-xmark text-danger fs-5" title="Hata / İptal"></i>
+                                        }
+                                        else if (log.Message.Contains("2FA"))
+                                        {
+                                            <i class="fa-solid fa-shield text-info fs-5" title="Güvenlik İşlemi"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-circle-check text-success fs-5" title="Başarılı"></i>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

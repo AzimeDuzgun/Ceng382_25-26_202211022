@@ -1,0 +1,182 @@
+﻿@model IEnumerable<DZGNCatering.Models.CartItem>
+@{
+    ViewData["Title"] = "Sepetim";
+    decimal grandTotal = Model?.Sum(x => x.SubTotal) ?? 0;
+}
+
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4" style="color: var(--primary-color);"><i class="fa-solid fa-cart-shopping"></i> Alışveriş Sepeti</h2>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 py-2 fw-bold">@TempData["Error"]</div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-warning border-0 shadow-sm rounded-3 p-4 text-center">
+            <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-warning"></i>
+            <h5 class="fw-bold">Sepetiniz şu an boş.</h5>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-gold rounded-pill px-4 mt-2 fw-bold">Menülere Göz At</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-3 mb-4">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Menü</th>
+                                        <th>Fiyat</th>
+                                        <th>Adet</th>
+                                        <th>Ara Toplam</th>
+                                        <th class="pe-4 text-end">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@item.ImageUrl" class="rounded shadow-sm me-3" style="width: 50px; height: 50px; object-fit: cover;" />
+                                                    <div>
+                                                        <h6 class="mb-0 fw-bold">@item.MenuName</h6>
+                                                        <small class="text-muted">@item.CaretakerName</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>@item.Price.ToString("C2")</td>
+                                            <td><span class="badge bg-secondary rounded-pill px-3 py-2 fs-6">@item.Quantity</span></td>
+                                            <td class="fw-bold text-success">@item.SubTotal.ToString("C2")</td>
+                                            <td class="pe-4 text-end">
+                                                <form asp-action="RemoveFromCart" method="post">
+                                                    <input type="hidden" name="menuId" value="@item.MenuId" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle"><i class="fa-solid fa-xmark"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-pill fw-bold"><i class="fa-solid fa-arrow-left"></i> Alışverişe Dön</a>
+                    <a asp-action="ClearCart" class="btn btn-outline-danger rounded-pill fw-bold" onclick="return confirm('Tüm sepeti boşaltmak istiyor musunuz?');"><i class="fa-solid fa-trash-can"></i> Sepeti Temizle</a>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-lg rounded-3" style="background: linear-gradient(145deg, #1e3d59, #152b40); color: white;">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold border-bottom border-secondary pb-3 mb-3">Sipariş Özeti</h4>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Ara Toplam:</span>
+                            <span class="fw-bold">@grandTotal.ToString("C2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 text-warning">
+                            <span>Teslimat Ücreti:</span>
+                            <span class="fw-bold">Ücretsiz</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-4 fs-4 border-top border-secondary pt-3">
+                            <span class="fw-bold">GENEL TOPLAM:</span>
+                            <span class="fw-bold text-success">@grandTotal.ToString("C2")</span>
+                        </div>
+
+                        <button type="button" class="btn btn-gold w-100 rounded-pill py-3 fw-bold fs-5 shadow" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                            <i class="fa-solid fa-credit-card"></i> Ödeme Yap ve Onayla
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                    <div class="modal-header bg-light border-0">
+                        <h5 class="modal-title fw-bold" style="color: var(--primary-color);"><i class="fa-solid fa-lock text-success"></i> Güvenli Ödeme Ekranı</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form id="checkoutForm" asp-action="Checkout" method="post">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-muted">TESLİMAT ADRESİ</label>
+                                <textarea name="deliveryAddress" class="form-control bg-light" rows="3" placeholder="Siparişinizin teslim edileceği tam adresi girin..." required></textarea>
+                            </div>
+
+                            <hr class="mb-4">
+
+                            <label class="form-label fw-bold small text-muted">KART BİLGİLERİ (Demo)</label>
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Kart Üzerindeki İsim" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" id="cardNumberInput" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                            </div>
+                            <div class="row g-2 mb-4">
+                                <div class="col-6">
+                                    <input type="text" class="form-control" placeholder="AA/YY" maxlength="5" required>
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" class="form-control" placeholder="CVV" maxlength="3" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="paySubmitBtn" class="btn btn-success w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm transition-all">
+                                <i class="fa-solid fa-check-circle"></i> @grandTotal.ToString("C2") Öde
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // ==================== 3 PUANLIK ÖDEME SİMÜLASYON MOTORU ====================
+        document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+            e.preventDefault(); // Formun doğrudan backend'e kaçmasını engelle
+
+            const submitBtn = document.getElementById('paySubmitBtn');
+
+            // 1. AŞAMA: Banka Onayı Aşaması
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> 3D Secure / Banka Onayı Bekleniyor...';
+            submitBtn.className = "btn btn-warning w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm text-dark";
+
+            // 1.5 Saniye Sonra 2. AŞAMA: Provision/Havuz Kontrolü
+            setTimeout(() => {
+                submitBtn.innerHTML = '<i class="fa-solid fa-shield-halved fa-beat me-2"></i> Provizyon Onaylanıyor...';
+                submitBtn.className = "btn btn-info w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm text-white";
+
+                // 1.5 Saniye Sonra 3. AŞAMA: Başarılı Ekranı ve Gönderim
+                setTimeout(() => {
+                    submitBtn.innerHTML = '<i class="fa-solid fa-circle-check me-2"></i> İşlem Başarılı! Sipariş Alınıyor...';
+                    submitBtn.className = "btn btn-success w-100 py-3 rounded-pill fw-bold fs-5 shadow-sm";
+
+                    // Gerçekten veritabanına kaydetmesi için formu post et
+                    setTimeout(() => {
+                        document.getElementById('checkoutForm').submit();
+                    }, 1000);
+
+                }, 1500);
+            }, 1500);
+        });
+
+        // Küçük bir fiyaka: Kart numarasını yazarken otomatik boşluk bırakma
+        document.getElementById('cardNumberInput').addEventListener('input', function (e) {
+            e.target.value = e.target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
+        });
+    </script>
+}

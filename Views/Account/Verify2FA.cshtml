@@ -1,0 +1,45 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "2FA Güvenlik Doğrulaması";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-lg rounded-3">
+            <div class="card-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="fa-solid fa-shield-envelope text-warning fa-3x animate-pulse"></i>
+                </div>
+                <h4 class="fw-bold mb-2" style="color: var(--primary-color);">İki Aşamalı Doğrulama</h4>
+                <p class="text-muted small">Hesap güvenliğiniz için e-posta adresinize 6 haneli bir doğrulama kodu gönderilmiştir.</p>
+
+                <div class="alert alert-info border-0 small my-3 py-2 text-start">
+                    <i class="fa-solid fa-circle-info"></i> <strong>Sistem Bildirimi (Demo):</strong> <br />
+                    E-posta sunucusu simüle edildi. Gönderilen kod: <span class="fw-bold fs-6 text-danger">@ViewBag.DemoCode</span>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger border-0 small py-2">@ViewBag.Error</div>
+                }
+
+                <form asp-action="Verify2FA" method="post" class="mt-4">
+                    <div class="mb-4">
+                        <input type="text" name="codeInput" class="form-control text-center fs-4 fw-bold letter-spacing-lg bg-light"
+                               placeholder="000000" maxlength="6" required autocomplete="off" autofocus />
+                    </div>
+
+                    <button type="submit" class="btn btn-gold w-100 py-2 rounded-pill fw-bold shadow-sm">
+                        <i class="fa-solid fa-lock-open"></i> Kodu Doğrula ve Giriş Yap
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .letter-spacing-lg {
+        letter-spacing: 5px;
+    }
+</style>

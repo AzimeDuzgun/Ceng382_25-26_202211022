@@ -1,0 +1,88 @@
+﻿@model IEnumerable<DZGNCatering.Models.Menu>
+@{
+    ViewData["Title"] = "Menülerim";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold" style="color: var(--primary-color);"><i class="fa-solid fa-utensils"></i> Yemek Menülerim</h2>
+        <a asp-action="Create" class="btn btn-gold rounded-pill px-4 shadow-sm"><i class="fa-solid fa-plus"></i> Yeni Menü Ekle</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-3 small py-2">
+            <i class="fa-solid fa-circle-check text-success me-1"></i> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 small py-2">
+            <i class="fa-solid fa-circle-xmark text-danger me-1"></i> @TempData["Error"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info border-0 shadow-sm rounded-3 p-4 text-center">
+            <i class="fa-solid fa-circle-info fa-2x text-info mb-2"></i>
+            <p class="mb-0 fw-bold">Henüz hiç menü eklemediniz. Hemen yukarıdaki butondan ilk menünüzü oluşturun!</p>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 @(item.IsActive ? "" : "opacity-75 bg-light")">
+
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name" style="height: 180px; object-fit: cover; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; @(item.IsActive ? "" : "filter: grayscale(80%);")" />
+                        }
+
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h5 class="card-title fw-bold" style="color: var(--primary-color);">@item.Name</h5>
+                            <p class="card-text text-muted small flex-grow-1">@item.Description</p>
+
+                            <hr class="text-muted opacity-25 my-3">
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-success p-2 rounded-pill fs-6">@item.Price.ToString("C2")</span>
+                                <span class="text-muted small"><i class="fa-regular fa-calendar"></i> @item.CreatedAt.ToString("dd.MM.yyyy")</span>
+                            </div>
+
+                            @if (item.IsActive)
+                            {
+                                <div class="d-flex gap-2 mt-auto w-100">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning rounded-pill flex-grow-1 fw-bold">
+                                        <i class="fa-solid fa-pen-to-square"></i> Düzenle
+                                    </a>
+
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="flex-grow-1 d-flex" onsubmit="return confirm('Bu menüyü silmek istediğinize emin misiniz? Eğer geçmiş siparişi varsa menü kalıcı silinmez, sadece vitrinden kaldırılır. Onaylıyor musunuz?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill w-100 fw-bold">
+                                            <i class="fa-solid fa-trash-can"></i> Sil / Kaldır
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="mt-auto w-100">
+                                    <div class="alert alert-secondary border-0 p-2 mb-2 text-center small fw-bold shadow-sm" style="font-size: 0.75rem;">
+                                        <i class="fa-solid fa-eye-slash text-danger"></i> Müşterilerden Gizlendi
+                                    </div>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-success rounded-pill w-100 fw-bold shadow-sm">
+                                        <i class="fa-solid fa-rotate-left"></i> Yeniden Yayına Al (Düzenle)
+                                    </a>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

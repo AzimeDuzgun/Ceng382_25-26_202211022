@@ -1,0 +1,380 @@
+﻿@model IEnumerable<DZGNCatering.Models.Menu>
+@{
+    ViewData["Title"] = "Premium Catering";
+    var groupedMenus = Model.GroupBy(m => m.Caretaker?.FullName ?? "Bilinmeyen Firma").ToList();
+}
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+        --luxury-dark: #0a0f16;
+        --luxury-gold: #D4AF37;
+        --luxury-gold-hover: #b5952f;
+        --text-main: #18181b;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #fafafa;
+    }
+
+    h1, h2, h3, h4, h5, .font-playfair {
+        font-family: 'Playfair Display', serif;
+    }
+
+    .hero-banner {
+        position: relative;
+        min-height: 550px;
+        background: url('https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        margin-top: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(10, 15, 22, 0.95) 0%, rgba(10, 15, 22, 0.6) 100%);
+    }
+
+    .glass-search {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 1rem;
+        padding: 1.5rem;
+    }
+
+    .luxury-card {
+        background: #ffffff;
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    }
+
+        .luxury-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+    .luxury-card-img-wrap {
+        overflow: hidden;
+        height: 220px;
+        position: relative;
+    }
+
+        .luxury-card-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+    .luxury-card:hover .luxury-card-img-wrap img {
+        transform: scale(1.08);
+    }
+
+    .price-tag {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--luxury-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        z-index: 2;
+    }
+
+    .btn-luxury-gold {
+        background: linear-gradient(135deg, var(--luxury-gold), #e5c158);
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        border-radius: 2rem;
+        padding: 0.6rem 1.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+    }
+
+        .btn-luxury-gold:hover {
+            background: linear-gradient(135deg, var(--luxury-gold-hover), var(--luxury-gold));
+            transform: translateY(-2px);
+            color: #fff;
+            box-shadow: 0 12px 25px rgba(212, 175, 55, 0.4);
+        }
+
+    .feature-box {
+        transition: transform 0.3s ease;
+    }
+
+        .feature-box:hover {
+            transform: translateY(-5px);
+        }
+</style>
+
+<div class="container mb-5">
+
+    <div class="hero-banner d-flex align-items-center">
+        <div class="hero-overlay"></div>
+        <div class="container position-relative z-2 px-4 px-lg-5">
+            <div class="row align-items-center">
+                <div class="col-lg-7 text-white py-5">
+                    <span class="badge bg-transparent border border-warning text-warning rounded-pill px-3 py-2 mb-4 fs-6 letter-spacing-1">
+                        <i class="fa-solid fa-star me-1"></i> PREMIUM CATERING DENEYİMİ
+                    </span>
+                    <h1 class="display-3 fw-bold mb-4 line-height-tight" style="color: #ffffff;">
+                        Mükemmel Lezzet, <br />
+                        <span style="color: var(--luxury-gold); font-style: italic;">Kusursuz Sunum.</span>
+                    </h1>
+                    <p class="lead text-white-50 mb-5" style="font-weight: 300; max-width: 500px;">
+                        Özel etkinlikleriniz ve kurumsal ihtiyaçlarınız için seçkin şeflerin hazırladığı eşsiz menüleri keşfedin.
+                    </p>
+
+                    <div class="glass-search w-100" style="max-width: 600px;">
+                        <form asp-controller="Home" asp-action="Index" method="get" class="d-flex align-items-center gap-3">
+                            <div class="flex-grow-1">
+                                <label class="text-white-50 small fw-bold mb-1 d-block"><i class="fa-solid fa-location-dot text-warning"></i> HİZMET BÖLGESİ SEÇİN</label>
+                                <select name="filterDistrict" class="form-select form-select-lg bg-transparent text-white border-0 fw-bold shadow-none p-0" onchange="this.form.submit()" style="cursor: pointer;">
+                                    <option class="text-dark" value="Çankaya" selected="@(ViewBag.UserDistrict == "Çankaya")">Ankara - Çankaya</option>
+                                    <option class="text-dark" value="Keçiören" selected="@(ViewBag.UserDistrict == "Keçiören")">Ankara - Keçiören</option>
+                                    <option class="text-dark" value="Yenimahalle" selected="@(ViewBag.UserDistrict == "Yenimahalle")">Ankara - Yenimahalle</option>
+                                    <option class="text-dark" value="Mamak" selected="@(ViewBag.UserDistrict == "Mamak")">Ankara - Mamak</option>
+                                    <option class="text-dark" value="Etimesgut" selected="@(ViewBag.UserDistrict == "Etimesgut")">Ankara - Etimesgut</option>
+                                    <option class="text-dark" value="Gölbaşı" selected="@(ViewBag.UserDistrict == "Gölbaşı")">Ankara - Gölbaşı</option>
+                                </select>
+                            </div>
+                            <div class="border-start border-light border-opacity-25 ps-3 d-none d-md-block">
+                                <div class="text-white-50 small fw-bold mb-1">DURUM</div>
+                                <div class="text-success fw-bold"><i class="fa-solid fa-circle text-success small me-1"></i> Aktif</div>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-3 py-3 mt-4 fw-bold d-flex justify-content-between align-items-center" style="background-color: #f0fdf4; color: #166534;">
+            <div><i class="fa-solid fa-circle-check fs-5 align-middle me-2"></i> @TempData["Success"]</div>
+            <a asp-controller="Cart" asp-action="Index" class="btn btn-sm btn-success rounded-pill fw-bold px-3">
+                Sepete Git <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    }
+
+    <div class="row g-4 my-5 text-center">
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100 feature-box border border-light">
+                <div class="d-inline-flex align-items-center justify-content-center bg-light text-warning rounded-circle mb-3" style="width: 70px; height: 70px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <h5 class="font-playfair fw-bold" style="color: var(--luxury-dark);">Taptaze Malzemeler</h5>
+                <p class="text-muted small mb-0">DZGN Catering olarak sadece günlük ve en kaliteli ürünleri kullanıyor, lezzeti şansa bırakmıyoruz.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100 feature-box position-relative" style="border-bottom: 3px solid var(--luxury-gold);">
+                <div class="position-absolute top-0 start-50 translate-middle badge bg-dark text-warning rounded-pill px-3 py-1">En Çok Tercih Edilen</div>
+                <div class="d-inline-flex align-items-center justify-content-center bg-light text-warning rounded-circle mb-3 mt-2" style="width: 70px; height: 70px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <h5 class="font-playfair fw-bold" style="color: var(--luxury-dark);">Zamanında Teslimat</h5>
+                <p class="text-muted small mb-0">Etkinliğinizin saniyesi saniyesine planlandığını biliyor, organizasyonlarınızı kusursuz kılıyoruz.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100 feature-box border border-light">
+                <div class="d-inline-flex align-items-center justify-content-center bg-light text-warning rounded-circle mb-3" style="width: 70px; height: 70px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-handshake-angle"></i>
+                </div>
+                <h5 class="font-playfair fw-bold" style="color: var(--luxury-dark);">Kurumsal Çözümler</h5>
+                <p class="text-muted small mb-0">Özel davetlerden şirket toplantılarına kadar her ölçekte profesyonel hizmet sunuyoruz.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5 mb-5 pt-3">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h3 class="fw-bold font-playfair m-0" style="color: var(--luxury-dark);">
+                <i class="fa-solid fa-map text-warning me-2"></i> Seçili Bölgedeki Kapsama Alanı
+            </h3>
+            <span class="badge bg-dark text-warning rounded-pill px-3 py-2 fs-6 shadow-sm">
+                <i class="fa-solid fa-location-crosshairs"></i> @ViewBag.UserDistrict
+            </span>
+        </div>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden p-1 bg-white">
+            <div class="rounded-3 overflow-hidden position-relative">
+                <iframe style="width: 100%; filter: contrast(1.1) saturate(1.1);" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?q=Ankara+@(ViewBag.UserDistrict)&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe>
+            </div>
+        </div>
+    </div>
+
+    @if (!groupedMenus.Any())
+    {
+        <div class="text-center py-5 mt-4 bg-white rounded-4 shadow-sm border border-light">
+            <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3" style="width: 80px; height: 80px;">
+                <i class="fa-solid fa-bell-concierge fa-2x text-muted"></i>
+            </div>
+            <h3 class="font-playfair fw-bold text-dark mb-2">Bu Bölgede Menü Bulunamadı</h3>
+            <p class="text-muted">Seçmiş olduğunuz bölgede şu an aktif olarak hizmet veren bir restoranımız bulunmamaktadır.</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var firmaGroup in groupedMenus)
+        {
+            <div class="mt-5 pt-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-dark text-warning rounded-circle d-flex justify-content-center align-items-center me-3 shadow" style="width: 55px; height: 55px; border: 2px solid var(--luxury-gold);">
+                        <i class="fa-solid fa-store fs-4"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold font-playfair m-0" style="color: var(--luxury-dark);">@firmaGroup.Key</h2>
+                        <span class="text-muted small fw-bold text-uppercase tracking-wider">
+                            <i class="fa-solid fa-award text-warning"></i> Seçkin Ortak Restoran • @firmaGroup.Count() Özel Menü
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    @foreach (var item in firmaGroup)
+                    {
+                        <div class="col">
+                            <div class="luxury-card h-100 d-flex flex-column">
+                                <div class="luxury-card-img-wrap">
+                                    <div class="price-tag">@item.Price.ToString("C2")</div>
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" alt="@item.Name" />
+                                    }
+                                    else
+                                    {
+                                        <img src="/css/default-food.jpg" alt="@item.Name" />
+                                    }
+                                </div>
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <a asp-controller="Home" asp-action="MenuDetails" asp-route-id="@item.Id" class="text-decoration-none">
+                                        <h4 class="font-playfair fw-bold mb-1 text-dark hover-gold" style="cursor: pointer; transition: color 0.2s;">@item.Name</h4>
+                                    </a>
+
+                                    @{
+                                        var avgRatingsDict = ViewBag.MenuAverageRatings as Dictionary<int, double>;
+                                        var reviewCountsDict = ViewBag.MenuReviewCounts as Dictionary<int, int>;
+
+                                        double menuAvg = 0;
+                                        int menuCount = 0;
+
+                                        if (avgRatingsDict != null && avgRatingsDict.ContainsKey(item.Id)) { menuAvg = avgRatingsDict[item.Id]; }
+                                        if (reviewCountsDict != null && reviewCountsDict.ContainsKey(item.Id)) { menuCount = reviewCountsDict[item.Id]; }
+                                    }
+
+                                    <div class="d-flex align-items-center gap-1 mb-3" style="font-size: 0.85rem;">
+                                        <div class="text-warning">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= Math.Round(menuAvg) && menuCount > 0)
+                                                {
+                                                    <i class="fa-solid fa-star"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-regular fa-star"></i>
+                                                }
+                                            }
+                                        </div>
+                                        @if (menuCount > 0)
+                                        {
+                                            <span class="fw-bold text-dark ms-1">@menuAvg.ToString("0.0") / 5</span>
+                                            <span class="text-muted small">| (@menuCount Değerlendirme)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small ms-1">Henüz puanlanmadı</span>
+                                        }
+                                    </div>
+
+                                    <p class="card-text text-muted small flex-grow-1" style="line-height: 1.7;">
+                                        @item.Description
+                                    </p>
+
+                                    <div class="mt-4 pt-3 border-top border-light d-flex justify-content-between align-items-center">
+                                        @if (User.IsInRole("Caretaker") || User.IsInRole("Admin") || (User.Identity?.Name?.Contains("Yönetici") == true))
+                                        {
+                                            <a asp-controller="Home" asp-action="MenuDetails" asp-route-id="@item.Id" class="btn btn-outline-dark w-100 rounded-pill fw-bold">
+                                                <i class="fa-solid fa-eye me-1"></i> Menü Detayını Gör
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-flex w-100 gap-2">
+                                                <input type="hidden" name="menuId" value="@item.Id" />
+                                                <input type="number" name="quantity" class="form-control text-center fw-bold shadow-sm" value="1" min="1" max="100" style="width: 70px; border: 1px solid #e4e4e7; border-radius: 2rem;" />
+                                                <button type="submit" class="btn btn-luxury-gold flex-grow-1 w-100">
+                                                    <i class="fa-solid fa-plus me-1"></i> Sepete Ekle
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@if (ViewBag.ShowLocationModal != null && ViewBag.ShowLocationModal == true)
+{
+    <div class="modal fade" id="welcomeLocationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" style="z-index: 9999;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4" style="overflow: hidden;">
+                <div class="p-4 bg-dark text-center position-relative">
+                    <div class="position-absolute w-100 h-100 top-0 start-0" style="background: url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=2070&auto=format&fit=crop') center/cover; opacity: 0.2;"></div>
+                    <h3 class="font-playfair fw-bold text-white position-relative z-1 mb-0">
+                        <i class="fa-solid fa-map-pin text-warning me-2"></i> Teslimat Noktası
+                    </h3>
+                </div>
+                <div class="modal-body p-5 text-center bg-white">
+                    <p class="text-muted mb-4">Size kusursuz bir deneyim sunabilmemiz için bulunduğunuz bölgeyi seçin.</p>
+
+                    <form asp-controller="Home" asp-action="Index" method="get">
+                        <select name="filterDistrict" class="form-select form-select-lg mb-4 text-center fw-bold shadow-sm" style="border: 1px solid #e4e4e7; border-radius: 0.75rem;">
+                            <option value="Çankaya">Ankara - Çankaya</option>
+                            <option value="Keçiören">Ankara - Keçiören</option>
+                            <option value="Yenimahalle">Ankara - Yenimahalle</option>
+                            <option value="Mamak">Ankara - Mamak</option>
+                            <option value="Etimesgut">Ankara - Etimesgut</option>
+                            <option value="Gölbaşı">Ankara - Gölbaşı</option>
+                        </select>
+                        <button type="submit" class="btn btn-luxury-gold w-100 py-3 fs-5">
+                            Menüleri Gör <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var myModal = new bootstrap.Modal(document.getElementById('welcomeLocationModal'));
+            myModal.show();
+        });
+    </script>
+}

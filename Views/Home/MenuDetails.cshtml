@@ -1,0 +1,151 @@
+﻿@model DZGNCatering.Models.Menu
+@{
+    ViewData["Title"] = Model.Name + " - Detaylar";
+    var reviews = ViewBag.Reviews as IEnumerable<DZGNCatering.Models.Review>;
+    double avgRating = ViewBag.AverageRating;
+}
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f8fafc;
+    }
+
+    .font-playfair {
+        font-family: 'Playfair Display', serif;
+    }
+
+    .luxury-detail-img {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+
+    .review-card {
+        background: #ffffff;
+        border-radius: 1rem;
+        border: 1px solid rgba(0,0,0,0.04);
+        transition: transform 0.2s;
+    }
+
+        .review-card:hover {
+            transform: translateY(-2px);
+        }
+</style>
+
+<div class="container mt-5 mb-5">
+
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted fw-bold small">
+            <i class="fa-solid fa-arrow-left me-1"></i> Menülere Geri Dön
+        </a>
+    </div>
+
+    <div class="row g-5 mb-5">
+
+        <div class="col-lg-6">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="@Model.Name" class="luxury-detail-img" />
+            }
+            else
+            {
+                <img src="/css/default-food.jpg" alt="@Model.Name" class="luxury-detail-img" />
+            }
+        </div>
+
+        <div class="col-lg-6 d-flex flex-column justify-content-center">
+            <span class="badge bg-dark text-warning rounded-pill px-3 py-2 mb-3 align-self-start fw-bold shadow-sm">
+                <i class="fa-solid fa-store me-1"></i> @(Model.Caretaker?.FullName ?? "Seçkin Restoran")
+            </span>
+
+            <h1 class="display-5 fw-bold text-dark font-playfair mb-2">@Model.Name</h1>
+
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <div class="text-warning">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Math.Round(avgRating))
+                        {
+                            <i class="fa-solid fa-star"></i>
+                        }
+                        else
+                        {
+
+                            <i class="fa-regular fa-star"></i>
+                        }
+                    }
+                </div>
+                <span class="fw-bold text-dark">@avgRating.ToString("0.0") / 5</span>
+                <span class="text-muted small">(@(reviews?.Count() ?? 0) Değerlendirme)</span>
+            </div>
+
+            <p class="text-muted fs-5 mb-4" style="line-height: 1.8;">@Model.Description</p>
+
+            <div class="p-4 bg-white rounded-4 shadow-sm border border-light mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block fw-bold mb-1">PORSİYON BEDELİ</small>
+                        <h2 class="text-success fw-bold m-0">@Model.Price.ToString("C2")</h2>
+                    </div>
+
+                    <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-flex gap-2 m-0">
+                        <input type="hidden" name="menuId" value="@Model.Id" />
+                        <input type="number" name="quantity" class="form-control text-center fw-bold shadow-none" value="1" min="1" max="50" style="width: 70px; border-radius: 2rem;" />
+                        <button type="submit" class="btn btn-luxury-gold px-4 rounded-pill">
+                            <i class="fa-solid fa-plus me-1"></i> Sepete Ekle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pt-4 border-top">
+        <div class="col-lg-8">
+            <h3 class="fw-bold text-dark font-playfair mb-4">
+                <i class="fa-regular fa-comments text-warning me-2"></i> Müşteri Deneyimleri ve Yorumlar
+            </h3>
+
+            @if (reviews == null || !reviews.Any())
+            {
+                <div class="p-5 text-center bg-white rounded-4 border border-light text-muted">
+                    <i class="fa-regular fa-comment-dots fa-3xl mb-3 opacity-50"></i>
+                    <h5 class="fw-bold m-0">Bu menüye henüz yorum yapılmamış.</h5>
+                    <p class="small mb-0">İlk siparişi verip deneyimini paylaşan sen olabilirsin!</p>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var review in reviews)
+                    {
+                        <div class="review-card p-4 shadow-sm bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-bold text-dark m-0">@(review.Order?.User?.FullName ?? "Değerli Müşterimiz")</h6>
+                                    <small class="text-muted opacity-75">
+                                        <i class="fa-regular fa-calendar-check me-1"></i> Onaylı Sipariş Deneyimi
+                                    </small>
+                                </div>
+
+                                <div class="bg-light px-3 py-1 rounded-pill border">
+                                    <span class="text-warning small me-1"><i class="fa-solid fa-star"></i></span>
+                                    <span class="fw-bold text-dark small">@review.MenuRating/5</span>
+                                </div>
+                            </div>
+
+                            <p class="text-secondary small mb-0 mt-2" style="line-height: 1.6; font-style: italic;">
+                                "Sipariş tam vaktinde ve sıcacık ulaştı. Menü içerisindeki lezzet dengesi kusursuzdu, kesinlikle tekrar tercih edeceğiz."
+                            </p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

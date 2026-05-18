@@ -1,0 +1,258 @@
+﻿@model IEnumerable<DZGNCatering.Models.Order>
+@{
+    ViewData["Title"] = "Firma Sipariş Yönetimi";
+}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold m-0 text-dark" style="font-family: 'Playfair Display', serif;">
+                <i class="fa-solid fa-bell-concierge text-warning me-2"></i> Gelen Sipariş Paneli
+            </h2>
+            <small class="text-muted">Restoranınıza gelen anlık siparişleri ve kazancınızı buradan yönetin.</small>
+        </div>
+        <span class="badge bg-dark text-warning rounded-pill px-4 py-2 fs-6 shadow-sm">
+            <i class="fa-solid fa-store me-1"></i> Kurumsal Ortak Paneli
+        </span>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm border border-light text-center h-100">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <h3 class="fw-bold text-success m-0">@ViewBag.TotalEarnings?.ToString("C2")</h3>
+                <small class="text-muted fw-bold text-uppercase small">Toplam Net Kazanç</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm border border-light text-center h-100">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <h3 class="fw-bold text-dark m-0">@ViewBag.TotalOrders</h3>
+                <small class="text-muted fw-bold text-uppercase small">Alınan Toplam Sipariş</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 bg-white rounded-4 shadow-sm h-100 border border-light text-center" style="border-bottom: 3px solid #D4AF37 !important;">
+                <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle mb-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <h3 class="fw-bold text-danger m-0">@ViewBag.PendingOrders</h3>
+                <small class="text-muted fw-bold text-uppercase small">Bekleyen Aktif Sipariş</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card-header bg-dark text-white p-3 border-0">
+            <h6 class="m-0 fw-bold"><i class="fa-solid fa-list-check text-warning me-2"></i> İşlem Bekleyen Sipariş Kuyruğu</h6>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="fa-solid fa-store-slash fa-3x mb-3 opacity-50"></i>
+                    <h5 class="fw-bold">Şu anda restoranınıza iletilmiş bir sipariş bulunmuyor.</h5>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Müşteri</th>
+                                <th>Menü</th>
+                                <th>Adet</th>
+                                <th>Toplam Tutar</th>
+                                <th>Mevcut Durum</th>
+                                <th class="pe-4 text-end">Aksiyon & Belgeler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">@order.User?.FullName</div>
+                                        <small class="text-muted text-lowercase">@order.User?.Email</small>
+                                    </td>
+                                    <td class="fw-bold" style="color: #0f172a;">@order.Menu?.Name</td>
+                                    <td><span class="badge bg-light text-dark border px-2">@order.Quantity Adet</span></td>
+                                    <td class="fw-bold text-success">@order.TotalPrice.ToString("C2")</td>
+                                    <td>
+                                        <span class="badge bg-dark text-white px-3 py-2 rounded-pill small">
+                                            @order.Status.ToString()
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <div class="d-flex flex-column align-items-end gap-2 py-2">
+                                            <form asp-action="UpdateStatus" method="post" class="d-inline-flex gap-1 align-items-center m-0">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <select name="status" class="form-select form-select-sm fw-bold border-secondary rounded-pill" style="width: 140px;">
+                                                    <option value="0">Beklemede</option>
+                                                    <option value="1">Hazırlanıyor</option>
+                                                    <option value="2">Yolda</option>
+                                                    <option value="3">Teslim Edildi</option>
+                                                    <option value="4">Iptal Edildi</option>
+                                                </select>
+
+                                                <button type="submit" class="btn btn-sm btn-gold rounded-pill px-3fw-bold">
+                                                    Güncelle
+                                                </button>
+                                            </form>
+
+                                            @if (order.Status != DZGNCatering.Models.OrderStatus.IptalEdildi)
+                                            {
+                                                <div class="d-flex gap-1">
+                                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-2 fw-bold" style="font-size: 0.75rem;"
+                                                            onclick="generatePDFInvoice('@order.Id', '@order.OrderDate.ToString("dd.MM.yyyy HH:mm")', '@(order.Menu?.Caretaker?.FullName ?? "Firma")', '@order.Menu?.Name', '@order.Quantity', '@order.Menu?.Price.ToString("C2")', '@order.TotalPrice.ToString("C2")')">
+                                                        <i class="fa-solid fa-file-pdf"></i> Fatura Gör
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-dark rounded-pill px-2 fw-bold" style="font-size: 0.75rem;"
+                                                            onclick="generatePDFAgreement('@order.Id', '@order.OrderDate.ToString("dd.MM.yyyy HH:mm")', '@(order.Menu?.Caretaker?.FullName ?? "Firma")', '@order.Menu?.Name', '@order.Quantity', '@order.TotalPrice.ToString("C2")')">
+                                                        <i class="fa-solid fa-file-contract"></i> Sözleşme
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function generatePDFInvoice(orderId, date, company, menu, qty, price, total) {
+        const element = document.createElement('div');
+        element.innerHTML = `
+        <div style="padding: 40px; font-family: 'Helvetica Neue', sans-serif; color: #333; background: #fff;">
+        <div style="border-bottom: 3px solid #D4AF37; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+        <h1 style="margin: 0; color: #0f172a; font-size: 28px; font-weight: bold;">DZGN CATERING</h1>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 12px;">Premium Yemek & Organizasyon Çözümleri</p>
+        </div>
+        <div style="text-align: right;">
+        <h2 style="margin: 0; color: #D4AF37; font-size: 20px;">E-FATURA</h2>
+        <p style="margin: 5px 0 0 0; color: #999; font-size: 12px;">No: #INV-${orderId}</p>
+        </div>
+        </div>
+
+        <table style="width: 100%; margin-bottom: 40px; font-size: 14px;">
+        <tr>
+        <td style="width: 50%; vertical-align: top;">
+        <strong style="color: #0f172a; text-transform: uppercase; font-size: 11px; display:block; margin-bottom: 5px;">Hizmet Sağlayıcı</strong>
+        <b>${company}</b><br>
+        DZGN Catering Ortaklık Ağı<br>
+        Ankara, Türkiye
+        </td>
+        <td style="width: 50%; vertical-align: top; text-align: right;">
+        <strong style="color: #0f172a; text-transform: uppercase; font-size: 11px; display:block; margin-bottom: 5px;">Fatura Tarihi</strong>
+        ${date}<br>
+        </td>
+        </tr>
+        </table>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px;">
+        <thead>
+        <tr style="background: #0f172a; color: #fff;">
+        <th style="padding: 12px; text-align: left; border-top-left-radius: 4px; border-bottom-left-radius: 4px;">Açıklama / Menü</th>
+        <th style="padding: 12px; text-align: center;">Miktar</th>
+        <th style="padding: 12px; text-align: right;">Birim Fiyat</th>
+        <th style="padding: 12px; text-align: right; border-top-right-radius: 4px; border-bottom-right-radius: 4px;">Toplam</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 15px 12px;"><b>${menu}</b><br><span style="font-size:12px; color:#999;">Catering Menü Paketi</span></td>
+        <td style="padding: 15px 12px; text-align: center;">${qty} Porsiyon</td>
+        <td style="padding: 15px 12px; text-align: right;">${price}</td>
+        <td style="padding: 15px 12px; text-align: right; font-weight: bold;">${total}</td>
+        </tr>
+        </tbody>
+        </table>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
+        <table style="width: 300px; font-size: 14px; border-top: 2px solid #0f172a;">
+        <tr>
+        <td style="padding: 15px 0 5px 0; font-weight: bold; font-size: 16px; color: #166534;">GENEL TOPLAM:</td>
+        <td style="padding: 15px 0 5px 0; text-align: right; font-weight: bold; font-size: 18px; color: #166534;">${total}</td>
+        </tr>
+        </table>
+        </div>
+
+        <div style="margin-top: 60px; border-top: 1px solid #eee; padding-top: 20px; text-align: center; color: #999; font-size: 11px;">
+        Bu fatura DZGN İşlem Güvenliği (SHA-256) altyapısı ile elektronik olarak üretilmiştir.
+        </div>
+        </div>
+        `;
+
+        const options = {
+        margin: 10,
+        filename: `DZGN_Fatura_#${orderId}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(element).set(options).save();
+        }
+
+        function generatePDFAgreement(orderId, date, company, menu, qty, total) {
+        const element = document.createElement('div');
+        element.innerHTML = `
+        <div style="padding: 50px; font-family: 'Helvetica Neue', sans-serif; color: #222; background: #fff; font-size: 13px; line-height: 1.6;">
+        <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 30px;">
+        <h2 style="margin: 0; color: #0f172a; font-family: 'Playfair Display', serif; font-size: 22px; font-weight: bold; letter-spacing: 1px;">CATERING HİZMET SÖZLEŞMESİ</h2>
+        <span style="color: #666; font-size: 11px;">DZGN TİCARİ AKİT ALTYAPISI</span>
+        </div>
+
+        <p><b>Sözleşme Referans No:</b> AGR-${orderId}</p>
+        <p><b>Sözleşme Onay Tarihi:</b> ${date}</p>
+        <br>
+        <p><b>1. TARAFLAR</b><br>İşbu mesafeli catering hizmet sözleşmesi, bir tarafta kurumsal hizmet sağlayıcı ortak restoran <b>${company}</b> (Sözleşmede 'Yüklenici' olarak anılacaktır) ile diğer tarafta sistemi kullanan ve siparişi onaylayan nihai Müşteri (Sözleşmede 'Alıcı' olarak anılacaktır) arasında aşağıda belirtilen maddeler dahilinde dijital ortamda mutabık kalınarak akdedilmiştir.</p>
+        <p><b>2. SÖZLEŞMENİN KONUSU VE KAPSAMI</b><br>İşbu sözleşmenin konusu, Yüklenici tarafından Alıcı'nın talebi doğrultusunda sistem üzerinden sipariş edilen <b>${menu}</b> içeriğinden toplam <b>${qty} porsiyon</b> gıda ürününün hijyen ve kalite standartlarına uygun olarak üretilmesi, paketlenmesi ve güvenli lojistik ağları ile taahhüt edilen teslimat noktasına ulaştırılması işidir.</p>
+        <p><b>3. MALİ HÜKÜMLER VE TAHSİLAT</b><br>Sözleşmeye konu olan catering hizmet bedeli KDV dahil ve tüm yasal yükümlülükler içerisinde toplam <b>${total}</b> olarak belirlenmiştir. İşbu tutar, Alıcı tarafından sipariş anında DZGN entegre Güvenli Ödeme Simülasyonu altyapısı üzerinden eksiksiz olarak tahsil edilerek Yüklenici havuz hesabına aktarılmıştır.</p>
+        <p><b>4. YÜRÜRLÜK VE DELİL AKDİ</b><br>İşbu sözleşme, Alıcı'nın web arayüzü üzerinden siparişi onaylayıp ödemeyi gerçekleştirdiği an dijital olarak imzalanmış ve yürürlüğe girmiş kabul edilir. Sistem loglarında saklanan zaman damgalı işlem kayıtları, taraflar arasında çıkabilecek olası uyuşmazlıklarda kesin delil niteliğindedir.</p>
+        <br><br><br>
+        <table style="width: 100%; text-align: center; margin-top: 40px; font-size: 13px;">
+        <tr>
+        <td style="width: 50%;">
+        <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Hizmet Sağlayıcı (Yüklenici)</strong>
+        <span style="font-style: italic;">${company}</span><br>
+        Elektronik Onay Verildi
+        </td>
+        <td style="width: 50%;">
+        <strong style="color: #0f172a; display: block; margin-bottom: 5px;">Alıcı (Müşteri)</strong>
+        <span style="font-style: italic;">Güvenli Elektronik İmza</span><br>
+        Sistem Onayı Aktif
+        </td>
+        </tr>
+        </table>
+        </div>
+        `;
+
+        const options = {
+        margin: 15,
+        filename: `DZGN_Sözleşme_#${orderId}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(element).set(options).save();
+        }
+    </script>
+}

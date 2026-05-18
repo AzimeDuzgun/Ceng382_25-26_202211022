@@ -1,0 +1,52 @@
+﻿@model DZGNCatering.Models.Review
+@{
+    ViewData["Title"] = "Değerlendirme Yap";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-3" style="color: var(--primary-color);"><i class="fa-regular fa-star text-warning"></i> Siparişi Değerlendir</h4>
+
+                <div class="p-3 bg-light rounded-3 mb-4 border">
+                    <h6 class="fw-bold m-0 text-dark">@Model.Order.Menu.Name</h6>
+                    <small class="text-muted">Sipariş Tarihi: @Model.Order.OrderDate.ToString("dd.MM.yyyy")</small>
+                </div>
+
+                <form asp-action="LeaveReview" method="post">
+                    <input type="hidden" asp-for="OrderId" />
+
+                    <div class="mb-3">
+                        <label asp-for="MenuRating" class="form-label small fw-bold">Yemek Lezzeti (1-5 Yıldız)</label>
+                        <select asp-for="MenuRating" class="form-select bg-light">
+                            <option value="5">⭐⭐⭐⭐⭐ 5 - Mükemmel</option>
+                            <option value="4">⭐⭐⭐⭐ 4 - İyi</option>
+                            <option value="3">⭐⭐⭐ 3 - Ortalama</option>
+                            <option value="2">⭐⭐ 2 - Kötü</option>
+                            <option value="1">⭐ 1 - Berbat</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CaretakerRating" class="form-label small fw-bold">Firma Hızı ve Servis (1-5 Yıldız)</label>
+                        <select asp-for="CaretakerRating" class="form-select bg-light">
+                            <option value="5">⭐⭐⭐⭐⭐ 5 - Kusursuz</option>
+                            <option value="4">⭐⭐⭐⭐ 4 - Hızlı</option>
+                            <option value="3">⭐⭐⭐ 3 - Normal</option>
+                            <option value="2">⭐⭐ 2 - Yavaş</option>
+                            <option value="1">⭐ 1 - Çok Kötü</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Comment" class="form-label small fw-bold">Yorumunuz</label>
+                        <textarea asp-for="Comment" class="form-control bg-light" rows="3" placeholder="Yemek ve teslimat hakkında ne düşünüyorsunuz?"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-gold w-100 py-2 rounded-pill fw-bold text-dark shadow-sm">Gönder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,123 @@
+/* Google Fonts - Premium ve Okunabilir Kurumsal Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-color: #0f172a; /* Derin Kurumsal Lacivert */
+    --secondary-color: #334155; /* Yumuşak Gri-Mavi */
+    --accent-gold: #d4af37; /* Premium Altın Rengi */
+    --accent-hover: #b5952f;
+    --bg-light: #f8fafc;
+    --text-main: #1e293b;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navbar Özelleştirmeleri */
+.navbar-premium {
+    background-color: var(--primary-color) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+    .navbar-premium .nav-link {
+        color: #e2e8f0 !important;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+    }
+
+        .navbar-premium .nav-link:hover {
+            color: var(--accent-gold) !important;
+            background-color: rgba(255,255,255,0.05);
+        }
+
+.navbar-brand {
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: white !important;
+}
+
+.brand-accent {
+    color: var(--accent-gold);
+}
+
+/* Butonlar */
+.btn-gold {
+    background-color: var(--accent-gold);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+    .btn-gold:hover {
+        background-color: var(--accent-hover);
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+/* Kartlar ve Gölgeler */
+.card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+}
+
+/* ================= PREMIUM ALT KISIM (FOOTER) DÜZENLEMESİ ================= */
+.footer-premium {
+    background-color: #0a0f16 !important; /* Koyu lüks arka plan */
+    color: #f1f5f9 !important; /* Ana metinler için açık gri-beyaz */
+    padding: 4rem 0 2rem 0;
+    border-top: 4px solid var(--luxury-gold, #D4AF37);
+}
+
+    /* Başlıkların beyaz ve net görünmesi için */
+    .footer-premium h5 {
+        color: #ffffff !important;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    /* Karanlıkta kaybolan text-muted yazılarını kurtarma sigortası */
+    .footer-premium .text-muted {
+        color: #94a3b8 !important; /* Okunabilir soft gri */
+    }
+
+    /* Linklerin görünürlüğü ve hover (üzerine gelme) şovu */
+    .footer-premium a.text-muted {
+        color: #94a3b8 !important;
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .footer-premium a.text-muted:hover {
+            color: var(--luxury-gold, #D4AF37) !important; /* Üzerine gelince gold rengi parlasın */
+            padding-left: 4px; /* Hafif sağa kayma efekti */
+        }
+
+    /* Footer içindeki çizgiyi beyazlatma */
+    .footer-premium hr {
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        opacity: 1;
+    }
+
+    /* İkonların rengi */
+    .footer-premium i {
+        color: var(--luxury-gold, #D4AF37) !important;
+    }

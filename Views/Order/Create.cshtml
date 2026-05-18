@@ -1,0 +1,171 @@
+﻿@model DZGNCatering.Models.Order
+@{
+    ViewData["Title"] = "Sipariş Ver";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-11">
+            <div class="row g-4">
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg rounded-3 h-100">
+                        <div class="card-body p-4 p-md-5">
+                            <h3 class="fw-bold mb-2" style="color: var(--primary-color);">
+                                <i class="fa-solid fa-basket-shopping"></i> Siparişi Onayla
+                            </h3>
+                            <p class="text-muted small mb-4">Lütfen adet ve teslimat adresini girip güvenli ödeme aşamasına geçiniz.</p>
+
+                            <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-4 bg-light border">
+                                @if (!string.IsNullOrEmpty(Model.Menu.ImageUrl))
+                                {
+                                    <img src="@Model.Menu.ImageUrl" alt="@Model.Menu.Name" class="rounded-3 shadow-sm border" style="width: 90px; height: 90px; object-fit: cover;" />
+                                }
+                                <div class="flex-grow-1">
+                                    <h5 class="fw-bold m-0" style="color: var(--primary-color);">@Model.Menu.Name</h5>
+                                    <p class="small text-muted mb-1" style="line-height: 1.3;">@Model.Menu.Description</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="text-muted small">
+                                            <i class="fa-solid fa-shop text-warning"></i> @(Model.Menu.Caretaker?.FullName ?? "Catering Firması")
+                                        </span>
+                                        <span class="fw-bold text-success fs-5" id="unitPrice" data-price="@Model.Menu.Price">
+                                            @Model.Menu.Price.ToString("C2")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form id="orderForm" asp-action="Create" method="post">
+                                <input type="hidden" asp-for="MenuId" />
+
+                                <div class="mb-3">
+                                    <label asp-for="Quantity" class="form-label small fw-bold">Kaç Adet / Porsiyon?</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fa-solid fa-calculator text-muted"></i></span>
+                                        <input asp-for="Quantity" id="quantityInput" type="number" class="form-control bg-light" value="1" min="1" max="100" />
+                                    </div>
+                                    <span asp-validation-for="Quantity" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="DeliveryAddress" class="form-label small fw-bold">Teslimat Adresi</label>
+                                    <textarea asp-for="DeliveryAddress" class="form-control bg-light" rows="3" placeholder="Siparişin teslim edileceği açık adres..."></textarea>
+                                    <span asp-validation-for="DeliveryAddress" class="text-danger small"></span>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <a asp-controller="Home" asp-action="Index" class="btn btn-light w-50 py-2 rounded-pill fw-bold">Vazgeç</a>
+                                    <button type="button" class="btn btn-gold w-50 py-2 rounded-pill shadow-sm fw-bold" onclick="openPaymentModal()">
+                                        <i class="fa-solid fa-credit-card"></i> Ödeme Aşamasına Geç
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg rounded-3 h-100 bg-white">
+                        <div class="card-body p-4 p-md-5 d-flex flex-column">
+                            <h4 class="fw-bold mb-2 text-dark">
+                                <i class="fa-solid fa-map-location-dot text-danger"></i> Lojistik & Teslimat Bölgesi
+                            </h4>
+                            <p class="text-muted small mb-3">
+                                Bu menü, firmanın aşağıda belirtilen merkez lojistik bölgesinden adresinize taze ve sıcak olarak sevk edilecektir.
+                            </p>
+
+                            <div class="mb-3">
+                                <span class="badge bg-dark text-warning rounded-pill px-3 py-2 small fw-bold">
+                                    <i class="fa-solid fa-truck-ramp-box"></i> Aktif Hizmet Bölgesi: @(Model.Menu.Caretaker?.District ?? "Belirtilmemiş")
+                                </span>
+                            </div>
+
+                            <div class="flex-grow-1 rounded-3 overflow-hidden border shadow-sm" style="min-height: 300px; position: relative;">
+                                <iframe src="https://maps.google.com/maps?q=@(Model.Menu.Caretaker?.District ?? "Ankara")&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                                        style="border:0; width:100%; height:100%; min-height: 300px;"
+                                        allowfullscreen=""
+                                        loading="lazy">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="paymentModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header border-0 bg-dark text-white p-4">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-shield-halved text-warning"></i> DZGN Güvenli Ödeme Sistemi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <span class="text-muted small text-uppercase fw-bold">Ödenecek Toplam Tutar</span>
+                    <h2 class="fw-bold text-success m-0" id="modalTotalTutar">₺0,00</h2>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Kart Sahibinin Adı Soyadı</label>
+                    <input type="text" class="form-control bg-light" placeholder="Kart Üzerindeki İsim" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Kart Numarası</label>
+                    <input type="text" class="form-control bg-light" placeholder="4444 5555 6666 7777" maxlength="19" required />
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Son Kullanma</label>
+                            <input type="text" class="form-control bg-light" placeholder="12/28" maxlength="5" required />
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">CVC / CVV</label>
+                            <input type="text" class="form-control bg-light" placeholder="123" maxlength="3" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-warning border-0 small d-flex align-items-center mb-0 mt-3">
+                    <i class="fa-solid fa-circle-info me-2 fs-5"></i>
+                    <span>Bu bir <strong>Ödeme Simülasyonudur</strong>. Kartınızdan gerçek para tahsil edilmeyecektir.</span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light p-3 d-flex gap-2">
+                <button type="button" class="btn btn-secondary w-50 rounded-pill fw-bold" data-bs-dismiss="modal">İptal Et</button>
+                <button type="button" class="btn btn-success w-50 rounded-pill fw-bold shadow-sm" onclick="submitActualForm()">
+                    <i class="fa-solid fa-lock"></i> Ödemeyi Yap ve Onayla
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openPaymentModal() {
+            var address = document.querySelector('[name="DeliveryAddress"]').value;
+            if(!address.trim()) {
+                alert("Lütfen önce teslimat adresini doldurunuz.");
+                return;
+            }
+
+            var price = parseFloat(document.getElementById('unitPrice').getAttribute('data-price').replace(',','.'));
+            var qty = parseInt(document.getElementById('quantityInput').value);
+            var total = price * qty;
+
+            document.getElementById('modalTotalTutar').innerText = total.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+
+            var myModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            myModal.show();
+        }
+
+        function submitActualForm() {
+            document.getElementById('orderForm').submit();
+        }
+    </script>
+}

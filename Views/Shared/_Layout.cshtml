@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DZGN Catering</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-premium py-3">
+            <div class="container">
+                <a class="navbar-brand fs-4" asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-bell-concierge brand-accent me-2"></i>DZGN<span class="brand-accent">Catering</span>
+                </a>
+
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2 ms-lg-4">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index"><i class="fa-solid fa-house me-1"></i> Ana Sayfa</a>
+                        </li>
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            if (User.IsInRole("Caretaker") || User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value == "Caretaker")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-light" asp-controller="Menu" asp-action="Index"><i class="fa-solid fa-utensils me-1"></i> Menülerim</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-warning fw-bold" asp-controller="Order" asp-action="CompanyOrders"><i class="fa-solid fa-bell-concierge me-1"></i> Gelen Siparişler</a>
+                                </li>
+                            }
+
+                            if (User.IsInRole("Customer") || User.IsInRole("User") || User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value == "User" || User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value == "Customer")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-success fw-bold" asp-controller="Order" asp-action="MyOrders"><i class="fa-solid fa-clock-rotate-left childhood-fix-me-not me-1"></i> Sipariş Geçmişim & Yorumlar</a>
+                                </li>
+                            }
+
+                            if (User.IsInRole("Admin") || User.IsInRole("2") || User.Identity.Name.Contains("Yönetici"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-danger fw-bold" asp-controller="Admin" asp-action="Logs"><i class="fa-solid fa-server me-1"></i> Sistem Logları</a>
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav align-items-center gap-3">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            if (User.IsInRole("Customer") || User.IsInRole("User") || User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value == "User" || User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value == "Customer")
+                            {
+                                <li class="nav-item">
+                                    <a class="btn btn-outline-light rounded-pill px-3 position-relative" asp-controller="Cart" asp-action="Index">
+                                        <i class="fa-solid fa-cart-shopping brand-accent"></i> Sepetim
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="bg-light rounded-circle d-flex justify-content-center align-items-center text-dark fw-bold" style="width: 32px; height: 32px;">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    @User.Identity.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="fa-solid fa-id-card me-2 text-muted"></i> Profilim</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                            <button type="submit" class="dropdown-item text-danger fw-bold"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Çıkış Yap</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-gold rounded-pill px-4 shadow-sm" asp-controller="Account" asp-action="Register">Kayıt Ol</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="pb-5">
+        @RenderBody()
+    </main>
+
+    <footer class="footer-premium mt-auto">
+        <div class="container">
+            <div class="row gy-4">
+                <div class="col-lg-4">
+                    <h5 class="text-white fw-bold mb-3"><i class="fa-solid fa-bell-concierge brand-accent me-2"></i>DZGN Catering</h5>
+                    <p class="small text-muted mb-0">Kurumsal şirketler & özel etkinlikler için yüksek standartlı yemek çözümleri.</p>
+                </div>
+                <div class="col-lg-4">
+                    <h5 class="text-white fw-bold mb-3">Hızlı Bağlantılar</h5>
+                    <ul class="list-unstyled small d-flex flex-column gap-2">
+                        <li><a href="#" class="text-muted text-decoration-none">Hakkımızda</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Firma Başvurusu</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h5 class="text-white fw-bold mb-3">İletişim</h5>
+                    <ul class="list-unstyled small text-muted d-flex flex-column gap-2">
+                        <li><i class="fa-solid fa-location-dot me-2"></i> Ankara, Türkiye</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-secondary my-4">
+            <div class="text-center small text-muted">
+                &copy; 2026 DZGN Catering. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

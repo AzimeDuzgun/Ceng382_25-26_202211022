@@ -1,0 +1,13 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.DS_Store
+dzgncatering.db
+dzgncatering.db-journal
+.vscode/
+wwwroot/uploads/
+# Rider/IDE files
+*.iml
+.idea/

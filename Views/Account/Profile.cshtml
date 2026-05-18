@@ -1,0 +1,104 @@
+﻿@{
+    ViewData["Title"] = "Profil Detayları";
+
+    // Oturumdaki verileri çekiyoruz
+    var userName = User.Identity?.Name ?? "Kullanıcı";
+
+    // Rolü sistemden okuyup Türkçeleştiriyoruz
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+    // Rol ismini süslüyoruz
+    string displayRole = "Tanımsız";
+    string roleIcon = "fa-user";
+    string roleClass = "bg-secondary";
+
+    if (userRole == "Customer" || userRole == "User")
+    {
+        displayRole = "Müşteri (Yemek Sever)";
+        roleIcon = "fa-crown";
+        roleClass = "bg-warning text-dark";
+    }
+    else if (userRole == "Caretaker")
+    {
+        displayRole = "Onaylı Catering Firması";
+        roleIcon = "fa-store";
+        roleClass = "bg-primary";
+    }
+    else if (userRole == "Admin")
+    {
+        displayRole = "Sistem Yöneticisi";
+        roleIcon = "fa-shield-halved";
+        roleClass = "bg-danger";
+    }
+}
+
+<style>
+    /* Premium Fontlar */
+    @@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+
+    .luxury-profile-card {
+        background: #ffffff;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        overflow: hidden;
+        margin-top: 50px;
+    }
+
+    .profile-top-bar {
+        height: 10px;
+        background: linear-gradient(90deg, #0f172a, #D4AF37);
+    }
+
+    .font-playfair {
+        font-family: 'Playfair Display', serif;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #f8fafc;
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="luxury-profile-card">
+                <div class="profile-top-bar"></div>
+                <div class="p-5 text-center">
+
+                    <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-4 shadow-sm" style="width: 100px; height: 100px; border: 2px solid #D4AF37;">
+                        <i class="fa-solid fa-user-tie fa-3x text-dark opacity-75"></i>
+                    </div>
+
+                    <h2 class="font-playfair fw-bold mb-1" style="color: #0f172a;">@userName</h2>
+                    <p class="text-muted small mb-4">DZGN Catering Üyesi</p>
+
+                    <hr class="opacity-10 my-4">
+
+                    <div class="mb-4">
+                        <label class="text-muted small fw-bold d-block mb-2 text-uppercase letter-spacing-1">HESAP YETKİSİ / ROL</label>
+                        <div class="d-inline-block px-4 py-2 rounded-pill shadow-sm @roleClass fw-bold">
+                            <i class="fa-solid @roleIcon me-2"></i> @displayRole
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-5">
+                        <form asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="btn btn-outline-danger w-100 rounded-pill fw-bold">
+                                <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Güvenli Çıkış Yap
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+            <p class="text-center mt-4 text-muted small">
+                <i class="fa-solid fa-lock text-success me-1"></i> Hesabınız SHA-256 ile korunmaktadır.
+            </p>
+
+        </div>
+    </div>
+</div>
